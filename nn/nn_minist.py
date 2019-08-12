@@ -38,17 +38,21 @@ def full_connected():
         b1 = tf.Variable(tf.random_normal([layer1], stddev=1, seed=1), name='b1')
 
     with tf.variable_scope('layer2'):
-        w2 = tf.Variable(tf.random_normal([layer1, 10], stddev=1, seed=1), name='w2')
-        b2 = tf.Variable(tf.random_normal([10], stddev=1, seed=1), name='b2')
-
+        w2 = tf.Variable(tf.random_normal([layer1, 50], stddev=1, seed=1), name='w2')
+        b2 = tf.Variable(tf.random_normal([50], stddev=1, seed=1), name='b2')
+    with tf.variable_scope('layer3'):
+        w3 = tf.Variable(tf.random_normal([50, 10], stddev=1, seed=1), name='w3')
+        b3 = tf.Variable(tf.random_normal([10], stddev=1, seed=1), name='b3')
     with tf.variable_scope('two_network'):
-        s1 = tf.sigmoid((tf.matmul(x, w1)+b1))
-        y_pre=tf.matmul(s1, w2)+ b2
+        s1 = tf.nn.relu((tf.matmul(x, w1)+b1))
+        s2 = tf.nn.relu((tf.matmul(s1, w2) + b2))
+        y_pre=tf.matmul(s2, w3)+ b3
 
     with tf.variable_scope('soft_cross'):
         loss= tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=y_pre))
     with tf.variable_scope('optimizer'):
-        train_op=tf.train.GradientDescentOptimizer(learning_rate=lr, name='optimizer').minimize(loss)
+        # train_op=tf.train.GradientDescentOptimizer(learning_rate=lr, name='optimizer').minimize(loss)
+        train_op = tf.train.RMSPropOptimizer(0.01, 0.9).minimize(loss)
 # loss=tf.losses.softmax_cross_entropy(logits=y_pre,onehot_labels=y)####
 # loss = tf.reduce_mean(-tf.reduce_sum(y*tf.log(y_pre)))   #求交叉熵
 # cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=y, labels=tf.argmax(y_pre, 1))
@@ -65,7 +69,7 @@ def full_connected():
     saver=tf.train.Saver()
     with tf.Session() as sess:
         sess.run(init)
-        for e in range(151):
+        for e in range(15001):
         # datafeed={x:mnist.validation.images,y:mnist.validation.labels}
             xs,ys=mnist.train.next_batch(batch)
             # loss_arr.append(loss_numpy)
@@ -91,37 +95,13 @@ def full_connected():
     plt.legend()
     plt.show()
 
-    sess=tf.Session()
-    saver = tf.train.import_meta_graph('./modelsave/model.ckpt-15000.meta',clear_devices = True)
-    saver.restore(sess, './modelsave/model.ckpt-15000')
-    print(w1.eval(session=sess))
-def tenbodsum():
-    tf.reset_default_graph()
-    input_ph=tf.placeholder(shape=(None,784),dtype=tf.float32)
-    label_ph=tf.placeholder(shape=(None,10),dtype=tf.float64)
-    def weight_variable(shape):
-        init=tf.truncated_normal(shape=shape,stddev=0.1)
-        return tf.Variable(init)
-    def bias_variable(shape):
-        init=tf.constant(0.1,shape=shape)
-        return tf.Variable(init)
-    def variable_summaries(var):
-        with tf.name_scope('summaries'):
-            mean=tf.reduce_mean(var)
-            tf.summary.scalar('mean',mean)
-            with tf.name_scope('stddev'):
-                stddev=tf.sqrt(tf.reduce_mean(tf.square(var-mean)))
-            tf.summary.scalar('stddev',stddev)
-            tf.summary.scalar('max',tf.reduce_max(var))
-            tf.summary.scalar('min',tf.reduce_min(var))
-            tf.summary.histogram('histogram',var)
-    def hiden_layer(x,output_dim,scope='hidden_layer',act=tf.nn.relu,reuse=None):
-        input_dim=x.get_shape().as_list()[-1]
-        with tf.name_scope(scope):
-            with tf.name_scope('weight'):
+    # sess=tf.Session()
+    # saver = tf.train.import_meta_graph('./modelsave/model.ckpt-15000.meta',clear_devices = True)
+    # saver.restore(sess, './modelsave/model.ckpt-15000')
+    # print(w1.eval(session=sess))
+
 
 if __name__ == '__main__':
-    # lookdata()
     full_connected()
-    # open()
+
 #

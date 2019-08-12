@@ -166,3 +166,7 @@ for _ in range(test_set.num_examples // 100):
 
 print('Test loss: {:.6f}'.format(np.array(test_loss).mean()))
 print('Test accuracy: {:.6f}'.format(np.array(test_acc).mean()))
+
+
+
+##tensorboard --logdir=train:train/,test:test/ cd到summary所在界面
