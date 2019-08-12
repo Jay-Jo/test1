@@ -11,7 +11,19 @@ layer1=100
 layer2=50
 batch=100
 lr=0.02
-
+def lookdata():
+    train_set=mnist.train
+    fig,axes=plt.subplots(ncols=6,nrows=2)
+    plt.tight_layout()
+    images,labels=train_set.next_batch(12,shuffle=False)
+    for ind,(image,label) in enumerate(zip(images,labels)):
+        image=image.reshape((28,28))
+        row=ind//6
+        col=ind%6
+        axes[row][col].imshow(image,cmap="gray")
+        axes[row][col].axis('off')
+        [[a]]=np.argwhere(label==1)
+        axes[row][col].set_title(a)
 
 ##############data
 
@@ -73,17 +85,43 @@ def full_connected():
                 saver.save(sess=sess,save_path='modelsave/model.ckpt',global_step=e)
 
     sess.close()
+    plt.figure(2)
     plt.plot(loss_arr, label='loss')
     plt.plot(acc_arr, label='acc')
     plt.legend()
-    # plt.show()
+    plt.show()
 
     sess=tf.Session()
     saver = tf.train.import_meta_graph('./modelsave/model.ckpt-15000.meta',clear_devices = True)
     saver.restore(sess, './modelsave/model.ckpt-15000')
     print(w1.eval(session=sess))
+def tenbodsum():
+    tf.reset_default_graph()
+    input_ph=tf.placeholder(shape=(None,784),dtype=tf.float32)
+    label_ph=tf.placeholder(shape=(None,10),dtype=tf.float64)
+    def weight_variable(shape):
+        init=tf.truncated_normal(shape=shape,stddev=0.1)
+        return tf.Variable(init)
+    def bias_variable(shape):
+        init=tf.constant(0.1,shape=shape)
+        return tf.Variable(init)
+    def variable_summaries(var):
+        with tf.name_scope('summaries'):
+            mean=tf.reduce_mean(var)
+            tf.summary.scalar('mean',mean)
+            with tf.name_scope('stddev'):
+                stddev=tf.sqrt(tf.reduce_mean(tf.square(var-mean)))
+            tf.summary.scalar('stddev',stddev)
+            tf.summary.scalar('max',tf.reduce_max(var))
+            tf.summary.scalar('min',tf.reduce_min(var))
+            tf.summary.histogram('histogram',var)
+    def hiden_layer(x,output_dim,scope='hidden_layer',act=tf.nn.relu,reuse=None):
+        input_dim=x.get_shape().as_list()[-1]
+        with tf.name_scope(scope):
+            with tf.name_scope('weight'):
 
 if __name__ == '__main__':
+    # lookdata()
     full_connected()
     # open()
 #
