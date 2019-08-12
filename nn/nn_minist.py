@@ -50,9 +50,10 @@ def full_connected():
     acc_arr=[]
     ################train
     init = tf.initialize_all_variables()
+    saver=tf.train.Saver()
     with tf.Session() as sess:
         sess.run(init)
-        for e in range(15000):
+        for e in range(151):
         # datafeed={x:mnist.validation.images,y:mnist.validation.labels}
             xs,ys=mnist.train.next_batch(batch)
             # loss_arr.append(loss_numpy)
@@ -68,13 +69,21 @@ def full_connected():
                 # y_pre_labe=(y_pre_numpy)
                 # acc=np.mean(y_pre_labe==y_true_label)
                 print('step is ',(e,loss_val,accc))
+            if e%5000==0:
+                saver.save(sess=sess,save_path='modelsave/model.ckpt',global_step=e)
 
     sess.close()
     plt.plot(loss_arr, label='loss')
     plt.plot(acc_arr, label='acc')
     plt.legend()
-    plt.show()
+    # plt.show()
+
+    sess=tf.Session()
+    saver = tf.train.import_meta_graph('./modelsave/model.ckpt-15000.meta',clear_devices = True)
+    saver.restore(sess, './modelsave/model.ckpt-15000')
+    print(w1.eval(session=sess))
 
 if __name__ == '__main__':
     full_connected()
-
+    # open()
+#
